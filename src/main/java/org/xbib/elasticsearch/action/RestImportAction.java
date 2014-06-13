@@ -317,6 +317,7 @@ public class RestImportAction extends BaseRestHandler {
                         logger.error(e.getMessage(), e);
                     }
                 }
+                bulkClient.waitForResponses(this.timeout);
                 bulkClient.shutdown();
                 bulkClient = null;
             } catch (Throwable e) {
@@ -351,11 +352,14 @@ public class RestImportAction extends BaseRestHandler {
                             logger.warn("index creation was not acknowledged");
                         }
                     } catch (IndexAlreadyExistsException e) {
-                        if (request.paramAsBoolean("createIndex", true)) {
-                            throw e;
-                        } else {
-                            logger.warn("index already exists: {}", index);
-                        }
+                    	// AWN: If index already exists, continue import and do not throw exception
+                        // if (request.paramAsBoolean("createIndex", true)) {
+                        //    throw e;
+                        //} else {
+                        logger.warn("index already exists: {}", index);
+                        //}
+                    } catch (org.elasticsearch.common.util.concurrent.UncategorizedExecutionException e) {
+                    	logger.warn("execution exception while creating index: {}", index);
                     }
                 }
             }

@@ -317,6 +317,7 @@ public class RestImportAction extends BaseRestHandler {
                         logger.error(e.getMessage(), e);
                     }
                 }
+                bulkClient.flush();
                 bulkClient.waitForResponses(this.timeout);
                 bulkClient.shutdown();
                 bulkClient = null;

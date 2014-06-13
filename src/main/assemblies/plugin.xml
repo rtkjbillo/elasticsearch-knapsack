@@ -15,5 +15,11 @@
                 <include>org.xbib.elasticsearch.plugin</include>
             </includes>
         </dependencySet>
-    </dependencySets>  
+    </dependencySets>
+    <fileSets>
+        <fileSet>
+            <directory>_site</directory>
+            <outputDirectory>/_site</outputDirectory>
+        </fileSet>
+    </fileSets>
 </assembly>

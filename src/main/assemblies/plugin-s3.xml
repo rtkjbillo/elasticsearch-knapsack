@@ -21,4 +21,10 @@
             </includes>
         </dependencySet>
     </dependencySets>
+    <fileSets>
+        <fileSet>
+            <directory>_site</directory>
+            <outputDirectory>/_site</outputDirectory>
+        </fileSet>
+    </fileSets>    
 </assembly>

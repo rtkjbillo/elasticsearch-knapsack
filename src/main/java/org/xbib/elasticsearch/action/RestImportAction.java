@@ -13,6 +13,7 @@ import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.io.Streams;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.unit.ByteSizeValue;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.util.concurrent.EsExecutors;
 import org.elasticsearch.common.util.concurrent.EsThreadPoolExecutor;
@@ -28,7 +29,6 @@ import org.elasticsearch.rest.RestChannel;
 import org.elasticsearch.rest.RestController;
 import org.elasticsearch.rest.RestHandler;
 import org.elasticsearch.rest.RestRequest;
-
 import org.xbib.elasticsearch.plugin.knapsack.KnapsackException;
 import org.xbib.elasticsearch.plugin.knapsack.KnapsackHelper;
 import org.xbib.elasticsearch.plugin.knapsack.KnapsackPacket;
@@ -207,7 +207,8 @@ public class RestImportAction extends BaseRestHandler {
                 knapsackHelper.addImport(status);
                 this.bulkClient = new BulkTransportClient();
                 Settings settings = KnapsackHelper.clientSettings(environment, destination);
-                bulkClient.flushInterval(TimeValue.timeValueSeconds(5))
+                bulkClient.flushInterval(null)
+                	.maxVolumePerBulkRequest(new ByteSizeValue(-1))
                     .maxActionsPerBulkRequest(maxActionsPerBulkRequest)
                     .maxConcurrentBulkRequests(maxBulkConcurrency)
                     .newClient(destination, settings);
@@ -229,8 +230,9 @@ public class RestImportAction extends BaseRestHandler {
                         }
                     }
                     String[] entry = KnapsackPacket.decodeName(packet.name());
-                    if (entry.length < 2) {
-                        throw new KnapsackException("archive entry too short, can't import");
+                    if (entry.length < 4) {
+                        continue;
+                    	// throw new KnapsackException("archive entry too short, can't import");
                     }
                     String index = entry[0];
                     String type = entry[1];
@@ -301,6 +303,7 @@ public class RestImportAction extends BaseRestHandler {
                         lastCoord = coord;
                     }
                 }
+                logger.debug("packet count: {}", Integer.toString(count));
                 if (!packets.isEmpty()) {
                     indexPackets(packets);
                 }
@@ -360,7 +363,7 @@ public class RestImportAction extends BaseRestHandler {
                         logger.warn("index already exists: {}", index);
                         //}
                     } catch (org.elasticsearch.common.util.concurrent.UncategorizedExecutionException e) {
-                    	logger.warn("execution exception while creating index: {}", index);
+                    	logger.warn("execution exception while creating index (it likely already exists): {}", index);
                     }
                 }
             }

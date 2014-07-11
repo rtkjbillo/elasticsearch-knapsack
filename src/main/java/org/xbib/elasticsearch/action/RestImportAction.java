@@ -231,8 +231,8 @@ public class RestImportAction extends BaseRestHandler {
                     }
                     String[] entry = KnapsackPacket.decodeName(packet.name());
                     if (entry.length < 4) {
+                        // For repacked .tar archives that contain leading directories, don't abort import process
                         continue;
-                    	// throw new KnapsackException("archive entry too short, can't import");
                     }
                     String index = entry[0];
                     String type = entry[1];
@@ -356,12 +356,8 @@ public class RestImportAction extends BaseRestHandler {
                             logger.warn("index creation was not acknowledged");
                         }
                     } catch (IndexAlreadyExistsException e) {
-                    	// AWN: If index already exists, continue import and do not throw exception
-                        // if (request.paramAsBoolean("createIndex", true)) {
-                        //    throw e;
-                        //} else {
+                    	  // If index already exists, continue import and do not throw exception
                         logger.warn("index already exists: {}", index);
-                        //}
                     } catch (org.elasticsearch.common.util.concurrent.UncategorizedExecutionException e) {
                     	logger.warn("execution exception while creating index (it likely already exists): {}", index);
                     }

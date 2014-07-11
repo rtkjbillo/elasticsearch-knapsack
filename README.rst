@@ -13,6 +13,28 @@ A direct copy of indexes or index types, or any search results with stored field
 
 Optionally, you can transfer archives to Amazon S3.
 
+
+Resilience Fork
+---------------
+
+As of July 2014, I (@rtkjbillo) had some issues with reliability and consistency of record import. The following changes were made to elasticsearch-knapsack and elasticsearch-support, and suit our particular purposes:
+
+In elasticsearch-knapsack (https://github.com/rtkjbillo/elasticsearch-knapsack):
+
+* Add `_site` directory to plugin build (avoid warnings in ElasticSearch logs)
+* Don't flush records every 5 seconds (bulk requests were not containing all records)
+* Don't set a maximum data size per bulk request
+* We repack .tar.gz archives with data; the recreated .tar files have leading directory entries (index/type). Ignore them.
+* Ignore cases where the index already exists when running with createIndex=true
+
+In elasticsearch-support (https://github.com/rtkjbillo/elasticsearch-support):
+
+* Wait 60 seconds for individual bulk import threads to close themselves (avoids terminating threads early)
+* Ignore 'client closed' errors and continue to try and import
+
+The version number was changed to 1.2.1.1 and this fork works with ES 1.2.1.
+
+
 Installation
 ------------
 
@@ -73,7 +95,7 @@ You can export this Elasticsearch index with::
 The result is a file in the Elasticsearch folder::
 
    -rw-r--r--  1 es  staff  341  8 Jan 22:25 test_test.tar.gz
-   
+
 Check with tar utility, the settings and the mapping is also exported::
 
     tar ztvf test_test.tar.gz
@@ -223,7 +245,7 @@ When importing, you can map your indexes or index/types to your favorite ones.
 Modifying settings and mappings
 -------------------------------
 
-You can overwrite the settings and mapping when importing by using parameters in the form ``<index>_settings=<filename>`` or ``<index>_<type>_mapping=<filename>``. 
+You can overwrite the settings and mapping when importing by using parameters in the form ``<index>_settings=<filename>`` or ``<index>_<type>_mapping=<filename>``.
 
 General example::
 
